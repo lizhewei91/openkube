@@ -1,0 +1,20 @@
+# permissions for end users to view unitedsets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: unitedset-viewer-role
+rules:
+- apiGroups:
+  - apps.openkube.com
+  resources:
+  - unitedsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.openkube.com
+  resources:
+  - unitedsets/status
+  verbs:
+  - get

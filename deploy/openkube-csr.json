@@ -1,0 +1,12 @@
+{
+  "hosts": [
+    "openkube-webhook-service.default.svc",
+    "openkube-webhook-service.default.svc.cluster.local",
+    "10.200.224.94"
+  ],
+  "CN": "openkube-webhook-service",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  }
+}

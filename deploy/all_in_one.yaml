@@ -1,0 +1,333 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: openkube-system
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  name: unitedsets.apps.openkube.com
+spec:
+  preserveUnknownFields: false
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+      service:
+        name: openkube-webhook-service
+        namespace: openkube-system
+        path: /convert
+  group: apps.openkube.com
+  names:
+    kind: UnitedSet
+    listKind: UnitedSetList
+    plural: unitedsets
+    singular: unitedset
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: UnitedSet is the Schema for the unitedsets API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: UnitedSetSpec defines the desired state of UnitedSet
+          properties:
+            foo:
+              description: Foo is an example field of UnitedSet. Edit UnitedSet_types.go to remove/update
+              type: string
+          type: object
+        status:
+          description: UnitedSetStatus defines the observed state of UnitedSet
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: openkube-leader-election-role
+  namespace: openkube-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: openkube-manager-role
+rules:
+- apiGroups:
+  - apps.openkube.com
+  resources:
+  - unitedsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.openkube.com
+  resources:
+  - unitedsets/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openkube-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: openkube-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: openkube-leader-election-rolebinding
+  namespace: openkube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: openkube-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: openkube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openkube-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openkube-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: openkube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openkube-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openkube-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: openkube-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: openkube-controller-manager-metrics-service
+  namespace: openkube-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openkube-webhook-service
+  namespace: openkube-system
+spec:
+  ports:
+  - port: 443
+    targetPort: 9877
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: openkube-controller-manager
+  namespace: openkube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command:
+        - /manager
+        image: 192.168.87.131:5000/controller-manage/openkube-controller:v1.0.0
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      terminationGracePeriodSeconds: 10
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: openkube-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/mutate-pod
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /mutate-pod
+  failurePolicy: Fail
+  name: mpod.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/mutate-apps-openkube-com-v1beta1-unitedset
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /mutate-apps-openkube-com-v1beta1-unitedset
+  failurePolicy: Fail
+  name: munitedset.kb.io
+  rules:
+  - apiGroups:
+    - apps.openkube.com
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - unitedsets
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: openkube-validating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/validate-apps-openkube-com-v1beta1-unitedset
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /validate-apps-openkube-com-v1beta1-unitedset
+  failurePolicy: Fail
+  name: vunitedset.kb.io
+  rules:
+  - apiGroups:
+    - apps.openkube.com
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - unitedsets

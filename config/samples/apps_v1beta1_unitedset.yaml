@@ -1,0 +1,12 @@
+apiVersion: apps.openkube.com/v1beta1
+kind: UnitedSet
+metadata:
+  name: unitedset-sample
+<<<<<<< HEAD
+#  namespace: tc
+=======
+  namespace: tc
+>>>>>>> 3df08e30ce418fc56f172b30f18b0bb3094557fc
+spec:
+  # Add fields here
+  foo: bar
