@@ -490,7 +490,7 @@ webhooks:
     resources:
     - unitedsets
  ```
-注意，url中的ip地址需要是本地开发机的ip地址，同时此ip需要能与K8s集群正常通信，uri为service.path.
+注意，url中的ip地址需要是**本地开发机的ip地址**，同时此ip需要能与K8s集群正常通信，uri为service.path.
 
 修改完两个WebhookConfiguration之后，下一步就可以去部署all_in_one.yaml文件了，由于现在controller要在本地运行调试，因此，这个阶段，要记得把all_in_one_local.yaml中的Deployment资源部分注释掉。
 ```
