@@ -13,7 +13,7 @@ kubebuilder init --domain openkube.com   // domain指定CRD资源group的域名,
 注意：domain需要全部小写
 ```
 
-#### 2、API创建
+## 2、API创建
 
 ```go
 kubebuilder create api --group apps --version v1beta1 --kind UnitedSet --namespaced true 
@@ -34,7 +34,7 @@ y
 - kind: 此 CRD 的类型，类似于社区原生的 Service 的概念；
 - namespaced: 此 CRD 是k8s集群级别资源还是 namespace隔离的，类似 node 和 Pod
 
-#### 3、创建webhook（可选）
+## 3、创建webhook（可选）
 
 https://www.qikqiak.com/post/k8s-admission-webhook/
 
@@ -45,16 +45,16 @@ kubebuilder create webhook --group core --version v1 --kind Pod --defaulting
 // 创建UnitedSet的 MutatingAdmissionWebhook 和 ValidatingAdmissionWebhook
 kubebuilder create webhook --group apps --version v1beta1 --kind UnitedSet --defaulting --programmatic-validation
 ```
-#### 4、定义 CRD
+## 4、定义 CRD
 
 在图 1中对应的文件定义 Spec 和 Status。
 
-#### 5、编写 Controller 和wenbook逻辑
+## 5、编写 Controller 和wenbook逻辑
 
 在图 1 中对应的文件实现 Reconcile 以及webhook逻辑。
 
-#### 6、本地调试运行
-##### 6.1、CRD安装
+## 6、本地调试运行
+### 6.1、CRD安装
 
 ```go
 开启go mod模式
@@ -106,11 +106,11 @@ spec:
 ```
 
 这里仅仅是把yaml存到etcd里了，我们controller监听到创建事件时啥事也没干。
-##### 6.2、修改配置文件
+### 6.2、修改配置文件
 
 因为启用了webhook，所以要对默认的配置文件进行一些修改，来到config目录，config的核心是config/default目录。
 
-###### 6.2.1、修改config/default/kustomization.yaml
+#### 6.2.1、修改config/default/kustomization.yaml
 ```
 # Adds namespace to all resources.
 namespace: openkube-system
@@ -184,7 +184,7 @@ vars:
     name: webhook-service
 ```
 
-###### 6.2.2、修改config/crd/kustomization.yaml文件
+#### 6.2.2、修改config/crd/kustomization.yaml文件
 ```
 # This kustomization.yaml is not intended to be run by itself,
 # since it depends on service name and namespace that are out of this kustomize package.
@@ -208,7 +208,7 @@ patchesStrategicMerge:
 configurations:
 - kustomizeconfig.yaml
 ```
-##### 7、修改Makefile
+### 7、修改Makefile
 ```
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
@@ -217,6 +217,87 @@ deploy: manifests
         kustomize build config/default > all_in_one.yaml
 ```
 可以看到，此命令会使用kustomize订制整个config/default目录下的配置文件，生成所有的资源文件，再使用kubectl apply命令部署，但直接apply在部分版本的K8s中可能会出错。为了更清晰地了解kustomize生成的资源有哪些，我将它做了一些小修改，不直接apply，转而将资源重定向到all_in_one.yaml文件内。
-##### all_in_one
+### all_in_one
+#### 分析
+仔细分析一番生成的all_in_one.yaml文件，有6000多行，其中的CustomResourceDefinition资源占据绝大部分的内容，总共可大概有这几种类型的资源:
+```
+# CRD的资源描述,涉及到Unit的每一个字段，因此非常冗长.
+kind: CustomResourceDefinition
+
+# admission webhook
+kind: MutatingWebhookConfiguration
+kind: ValidatingWebhookConfiguration
+
+# RBAC授权
+kind: Role
+kind: ClusterRole
+kind: RoleBinding
+kind: ClusterRoleBinding
+
+# prometheus metric service
+kind: Service
+
+# openkube-webhook-service，接收APIServer的回调
+kind: Service
+
+# openkube controller deployment
+kind: Deployment
+```
+#### 修改yaml文件
+##### 需要把yaml文件中CustomResourceDefinition.spec下新增一个字段：`preserveUnknownFields: false`
+否则不加此字段kubectl apply会报错，bug已知存在于1.15-1.17以下的版本中，参考: Generated Metadata breaks crd
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: openkube-system
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  name: unitedsets.apps.openkube.com
+spec:
+  preserveUnknownFields: false                           // 增加此参数
+  conversion:
+    strategy: Webhook
+    webhookClientConfig:
+...
+```
+##### 修改MutatingWebhookConfiguration 和 ValidatingWebhookConfiguration
+这两个webhook配置需要修改什么呢？来看看下载的配置，以为例：MutatingWebhookConfiguration
+```
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: openkube-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: Cg=
+    service:
+      name: openkube-webhook-service
+      namespace: openkube-system
+      path: /mutate-pod
+  failurePolicy: Fail
+  name: mpod.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+```
+这里面有两个地方要修改：
+
+- caBundle现在是空的，需要补上
+- clientConfig现在的配置是ca授权给的是Service unit-webhook-service，也即是会转发到deployment的pod，但我们现在是要本地调试，这里就要改成本地环境。
+
 
 
