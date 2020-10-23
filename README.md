@@ -314,7 +314,7 @@ kubectl config view --raw -o json | jq -r '.clusters[0].cluster."certificate-aut
 
 ca.cert的内容，即可复制替换到上面的MutatingWebhookConfiguration和ValidatingWebhookConfigurationd的`webhooks.clientConfig.caBundle`里。(原来的`Cg==`要删掉.)
 
-####### 2.csr
+**2.csr**
 
 创建证书签署请求json配置文件：
 
@@ -340,7 +340,7 @@ cat > openkube-csr.json << EOF
 EOF
 ```
 
-####### 3.生成csr和pem私钥文件:
+**3.生成csr和pem私钥文件:**
 
 ```shell
 [root@k8s-master deploy]# cat openkube-csr.json | cfssl genkey - | cfssljson -bare openkube
@@ -352,7 +352,7 @@ EOF
 openkube.csr  openkube-csr.json  openkube-key.pem
 ```
 
-####### 4.创建CertificateSigningRequest资源
+**4.创建CertificateSigningRequest资源**
 
 ```shell
 cat > csr.yaml << EOF 
@@ -372,7 +372,7 @@ EOF
 kubectl apply -f csr.yaml
 ```
 
-####### 5.向集群提交此CertificateSigningRequest.
+**5.向集群提交此CertificateSigningRequest.**
 
 查看状态：
 
