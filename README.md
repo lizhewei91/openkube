@@ -299,5 +299,121 @@ webhooks:
 - caBundle现在是空的，需要补上
 - clientConfig现在的配置是ca授权给的是Service unit-webhook-service，也即是会转发到deployment的pod，但我们现在是要本地调试，这里就要改成本地环境。
 
+下面来讲述如何配置这两个点。
+###### CA证书签发
+这里要分为多个步骤：
 
+####### 1.ca.cert
+
+首先获取K8s CA的CA.cert文件：
+
+```
+kubectl config view --raw -o json | jq -r '.clusters[0].cluster."certificate-authority-data"' | tr -d '"' > ca.cert
+
+```
+
+ca.cert的内容，即可复制替换到上面的MutatingWebhookConfiguration和ValidatingWebhookConfigurationd的`webhooks.clientConfig.caBundle`里。(原来的`Cg==`要删掉.)
+
+####### 2.csr
+
+创建证书签署请求json配置文件：
+
+注意，hosts里面填写两种内容：
+
+- openkube controller的service 在K8s中的域名，最后openkube controller是要放在K8s里运行的。
+- 本地开发机的某个网卡IP地址，这个地址用来连接K8s集群进行调试。因此必须保证这个IP与K8s集群可以互通
+
+```shell
+cat > openkube-csr.json << EOF
+{
+  "hosts": [
+    "openkube-webhook-service.default.svc",
+    "openkube-webhook-service.default.svc.cluster.local",
+    "192.168.254.1"
+  ],
+  "CN": "openkube-webhook-service",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  }
+}
+EOF
+```
+
+####### 3.生成csr和pem私钥文件:
+
+```shell
+[root@k8s-master deploy]# cat openkube-csr.json | cfssl genkey - | cfssljson -bare openkube
+2020/05/23 17:44:39 [INFO] generate received request
+2020/05/23 17:44:39 [INFO] received CSR
+2020/05/23 17:44:39 [INFO] generating key: rsa-2048
+2020/05/23 17:44:39 [INFO] encoded CSR
+[root@k8s-master deploy]# ls
+openkube.csr  openkube-csr.json  openkube-key.pem
+```
+
+####### 4.创建CertificateSigningRequest资源
+
+```shell
+cat > csr.yaml << EOF 
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: openkube
+spec:
+  request: $(cat openkube.csr | base64 | tr -d '\n')
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+
+# apply
+kubectl apply -f csr.yaml
+```
+
+####### 5.向集群提交此CertificateSigningRequest.
+
+查看状态：
+
+```shell
+[root@k8s-master deploy]# kubectl apply -f csr.yaml 
+certificatesigningrequest.certificates.k8s.io/openkube created
+[root@k8s-master deploy]# kubectl describe csr openkube 
+Name:         openkube
+Labels:       <none>
+...
+
+CreationTimestamp:  Tue, 20 Oct 2020 23:37:47 -0400
+Requesting User:    kubernetes-admin
+Signer:             kubernetes.io/legacy-unknown
+Status:             Pending
+Subject:
+  Common Name:    openkube-webhook-service
+  Serial Number:  
+Subject Alternative Names:
+         DNS Names:     openkube-webhook-service.default.svc
+                        openkube-webhook-service.default.svc.cluster.local
+         IP Addresses:  10.200.224.94
+Events:  <none>
+```
+
+可以看到它还是pending的状态，需要同意一下请求:
+
+```shell
+[root@k8s-master deploy]#  kubectl certificate approve openkube
+certificatesigningrequest.certificates.k8s.io/openkube approved
+[root@k8s-master deploy]# kubectl get csr openkube 
+NAME       AGE     SIGNERNAME                     REQUESTOR          CONDITION
+openkube   2m15s   kubernetes.io/legacy-unknown   kubernetes-admin   Approved,Issued
+# 保存客户端crt文件
+[root@k8s-master deploy]# kubectl get csr openkube -o jsonpath='{.status.certificate}' | base64 --decode > openkube.crt
+```
+
+可以看到，现在已经签署完毕了。
+
+汇总一下：
+
+- 第1步生成的ca.cert文件给caBundle字段使用
+- 第3步生成的unit-key.pem私钥文件和第5步生成的unit.crt文件，提供给客户端(unit controller)https服务使用
 
