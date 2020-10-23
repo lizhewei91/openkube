@@ -417,3 +417,115 @@ openkube   2m15s   kubernetes.io/legacy-unknown   kubernetes-admin   Approved,Is
 - 第1步生成的ca.cert文件给caBundle字段使用
 - 第3步生成的unit-key.pem私钥文件和第5步生成的unit.crt文件，提供给客户端(unit controller)https服务使用
 
+### 8、更新WebhookConfiguration
+根据上面生成的证书相关内容，对all_in_one.yaml 中的WebhookConfiguration进行替换，替换之后：
+```
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: openkube-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/mutate-pod
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /mutate-pod
+  failurePolicy: Fail
+  name: mpod.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/mutate-apps-openKube-com-v1beta1-unitedset
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /mutate-apps-openKube-com-v1beta1-unitedset
+  failurePolicy: Fail
+  name: munitedset.kb.io
+  rules:
+  - apiGroups:
+    - apps.openKube.com
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - unitedsets
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: openkube-validating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJd01EY3hNekF5TURBMU4xb1hEVE13TURjeE1UQXlNREExTjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBUEZRCkhlbDd1SW4vVGVGbmFHRVlvOElOQWlZeEFrbmF1UnY2TGhYVXYwV25lRHFONVJ1M0FoRzM5ZlJvSFhzQURRUWIKWWRXRmtjU1FJUGNzWmdJMy9nNFdGVkhvd2s3Rk5qdUlWdzBDc0dsS05XZldkeG9NV0Y4YkNsVEpoRU9Td3ZkbQprU1NYdllpdzlkVVhDa3kweXgvdzE2WkN4ZXBPUzJsTUFqc3ZjenhWd3dZbUZ4RDBQUEdrbkIwOUdNUjVXNzdPCjVQdFhRMUo2T1pNcmVLdDB0YllOZ25LTHdqSk5GZVFxZzZCR2ZYQVFwUkhNUHpIdHlNV3MxWkg2TTQwZ0FoVEgKQjkwbzJ1QWQwRXpWM1p0YWp3dnBHSmN0UFJvQXNmYWpjTDRqOFU5MUlpTmMyLzRtK3RQZ0lCVUJZT0ZJWDBWbApQVG8yMU1tcWdBSXREeGNJRDZjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFPclFRMXZoMlk0WE5mWC9BWEluNEtuVlArdVIKaW15Y0dQdmJiZTJqYXZOVHRGMGJ5Ui9QdGxNNDlzSmxZWEhwSStyYmZxYzd3SGx5RTdmVFA3TWRseTJFTDVTUwpCQW94d3p6eVUzeFpBTUptbHRGWitWMDZ4Zi94aE1TY2FvTW5EQ0Q2TmdBbmZvMkNmRGxaR2NHeXJNNUVZeDFICkg5dXpNWmxTc3NSQTE4Y1c3UlNZYW9oazhHenZJc2grUitKd1l5bnoxZTBzOXVZYzFEM20xbWl4dFpsY2dGNjAKOW5leFlVQlBqVlIxc1ZLZGxsdmcxclRHZHdTQ3ZaV28vL1NBS0RmWEZHRnFoM3QyWEVzcUNWY3pkWVozMFdpVQpQMGdNbnBzWW8yUmpGbHN6SitoUUVRNlBQei9HZHQ4RlEwODlzTTBtM2ZWdnRMRXc3NVpzczgrRUphdz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    url: https://10.200.224.94:9877/validate-apps-openKube-com-v1beta1-unitedset
+#    service:
+#      name: openkube-webhook-service
+#      namespace: openkube-system
+#      path: /validate-apps-openKube-com-v1beta1-unitedset
+  failurePolicy: Fail
+  name: vunitedset.kb.io
+  rules:
+  - apiGroups:
+    - apps.openKube.com
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - unitedsets
+ ```
+注意，url中的ip地址需要是本地开发机的ip地址，同时此ip需要能与K8s集群正常通信，uri为service.path.
+
+修改完两个WebhookConfiguration之后，下一步就可以去部署all_in_one.yaml文件了，由于现在controller要在本地运行调试，因此，这个阶段，要记得把all_in_one_local.yaml中的Deployment资源部分注释掉。
+```
+[root@k8s-master deploy]# kubectl apply -f all_in_one_local.yaml --validate=false
+namespace/openkube-system created
+customresourcedefinition.apiextensions.k8s.io/unitedsets.apps.openkube.com created
+role.rbac.authorization.k8s.io/openkube-leader-election-role created
+clusterrole.rbac.authorization.k8s.io/openkube-manager-role created
+clusterrole.rbac.authorization.k8s.io/openkube-proxy-role created
+clusterrole.rbac.authorization.k8s.io/openkube-metrics-reader created
+rolebinding.rbac.authorization.k8s.io/openkube-leader-election-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/openkube-manager-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/openkube-proxy-rolebinding created
+service/openkube-controller-manager-metrics-service created
+service/openkube-webhook-service created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/openkube-mutating-webhook-configuration created
+```
+K8s这边的CRD资源、webhook资源、RBAC授权都已经搞定了，下一步就是启动本地的controller进行调试了。
+### 9、本地启动controller
+
+启动之前要把上面准备好的证书、私钥，放在指定的目录内，默认指定目录是：`/tmp/k8s-webhook-server/serving-certs/`
+
+```shell
+windows系统的Temp目录，C:\Users\suning\AppData\Local\Temp
+
+进入Temp目录，创建
+
+# mkdir -r /$TMPDIR/k8s-webhook-server/serving-certs/
+# cp openkube-key.pem $TMPDIR/k8s-webhook-server/serving-certs/tls.key
+# cp openkube.crt $TMPDIR/k8s-webhook-server/serving-certs/tls.crt
+```
+
+证书准备好之后，就可以在IDE内启动controller了：
+```
+go run main.go
+```
+可以开始愉快的调试了~
+
