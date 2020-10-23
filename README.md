@@ -243,8 +243,8 @@ kind: Service
 # openkube controller deployment
 kind: Deployment
 ```
-#### 修改yaml文件
-##### 需要把yaml文件中CustomResourceDefinition.spec下新增一个字段：`preserveUnknownFields: false`
+### 8、修改all_in_one.yaml文件
+#### 8.1、需要把all_in_one.yaml文件中CustomResourceDefinition.spec下新增一个字段：`preserveUnknownFields: false`
 否则不加此字段kubectl apply会报错，bug已知存在于1.15-1.17以下的版本中，参考: Generated Metadata breaks crd
 ```
 apiVersion: v1
@@ -267,7 +267,7 @@ spec:
     webhookClientConfig:
 ...
 ```
-##### 修改MutatingWebhookConfiguration 和 ValidatingWebhookConfiguration
+#### 8.2、修改MutatingWebhookConfiguration 和 ValidatingWebhookConfiguration
 这两个webhook配置需要修改什么呢？来看看下载的配置，以为例：MutatingWebhookConfiguration
 ```
 apiVersion: admissionregistration.k8s.io/v1beta1
@@ -300,7 +300,7 @@ webhooks:
 - clientConfig现在的配置是ca授权给的是Service unit-webhook-service，也即是会转发到deployment的pod，但我们现在是要本地调试，这里就要改成本地环境。
 
 下面来讲述如何配置这两个点。
-###### CA证书签发
+##### 8.2.1、CA证书签发
 这里要分为多个步骤：
 
 **1.ca.cert**
@@ -417,7 +417,7 @@ openkube   2m15s   kubernetes.io/legacy-unknown   kubernetes-admin   Approved,Is
 - 第1步生成的ca.cert文件给caBundle字段使用
 - 第3步生成的unit-key.pem私钥文件和第5步生成的unit.crt文件，提供给客户端(unit controller)https服务使用
 
-### 8、更新WebhookConfiguration
+##### 8.2.2、更新WebhookConfiguration
 根据上面生成的证书相关内容，对all_in_one.yaml 中的WebhookConfiguration进行替换，替换之后：
 ```
 apiVersion: admissionregistration.k8s.io/v1beta1
