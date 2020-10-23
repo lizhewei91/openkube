@@ -528,4 +528,69 @@ windows系统的Temp目录，C:\Users\suning\AppData\Local\Temp
 go run main.go
 ```
 可以开始愉快的调试了~
+### 10、部署sample
+
+假设调试已经完毕，可以开始测试部署一个Unit实例了。
+
+默认的sample在这里：`config/samples/apps_v1beta1_unitedset.yaml`，里面的Group、version、kind等已经填好了，补充下内容即可，例如sample.yaml：
+
+```yaml
+apiVersion: apps.openkube.com/v1beta1
+kind: UnitedSet
+metadata:
+  name: unitedset-sample
+#  namespace: tc
+spec:
+  # Add fields here
+  foo: bar
+```
+
+```shell
+[root@k8s-master samples]# kubectl apply -f apps_v1beta1_unitedset.yaml 
+unitedset.apps.openkube.com/unitedset-sample created
+[root@k8s-master samples]# kubectl get unitedsets.apps.openkube.com 
+NAME               AGE
+unitedset-sample   16s
+[root@k8s-master samples]# kubectl describe unitedsets.apps.openkube.com unitedset-sample 
+Name:         unitedset-sample
+Namespace:    default
+Labels:       <none>
+Annotations:  openkube.com/unitedSet-hash: 7vzdzzfdf44w88b92wb9fb767dczxx647848bb5vx2wxw968d4bv2x24v425w9x4
+API Version:  apps.openkube.com/v1beta1
+Kind:         UnitedSet
+Metadata:
+  Creation Timestamp:  2020-10-22T07:45:05Z
+```
+
+可以看到，unitedSet资源已经创建成功了，hash值已经注入到`Annotations`中
+
+### 11、发布
+
+如果已经调试和测试完毕，可以进入正式发布了。弄清了上面的步骤，发布比较简单了
+
+#### 11.1、打包push docker镜像
+
+修改Makefile中的IMG，`IMG ?= 192.168.87.131:5000/controller-manage/openkube-controller:v1.0.0`
+
+```shell
+# make docker-build docker-push 
+```
+
+#### 11.2、 Make deploy
+
+```shell
+# make deploy
+```
+
+#### 11.3、 修改deployment
+
+为什么要修改deployment呢？还是因为证书的问题，deployment运行同样也需要证书，那就将证书做成Secret资源，以Secret的形式挂载进pod里面把。
+
+**生成secret**
+
+```shell
+# kubectl create secret generic openkube-cert --from-file=./tls.crt --from-file=./tls.key
+```
+
+**修改Deployment，添加Secret挂载**
 
