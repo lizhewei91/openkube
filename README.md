@@ -650,7 +650,9 @@ spec:
 
 # 参考资料
 https://book.kubebuilder.io/
+
 https://blog.upweto.top/gitbooks/kubebuilder/
+
 https://blog.csdn.net/qq_24271853/article/details/107085126
 
 
