@@ -648,4 +648,10 @@ spec:
 
 修改完毕，清理前面的apply的资源和sample，再次执行`kubectl apply -f all_in_one.yaml --validate=false`命令，可以看到，部署成功！
 
+# 参考资料
+https://book.kubebuilder.io/
+https://blog.upweto.top/gitbooks/kubebuilder/
+https://blog.csdn.net/qq_24271853/article/details/107085126
+
+
 
