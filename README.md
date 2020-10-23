@@ -1,7 +1,7 @@
 # openKube
 自定义CRD资源demo，kubebuilder v2.3.1
 
-#### 1、初始化项目目录
+## 1、初始化项目目录
 
 ```go
 export GO111MODULE=on   // 开启gomod
@@ -217,6 +217,6 @@ deploy: manifests
         kustomize build config/default > all_in_one.yaml
 ```
 可以看到，此命令会使用kustomize订制整个config/default目录下的配置文件，生成所有的资源文件，再使用kubectl apply命令部署，但直接apply在部分版本的K8s中可能会出错。为了更清晰地了解kustomize生成的资源有哪些，我将它做了一些小修改，不直接apply，转而将资源重定向到all_in_one.yaml文件内。
-
+##### all_in_one
 
 
