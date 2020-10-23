@@ -241,7 +241,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: 192.168.87.131:5000/controller-manage/openkube-controller:v1.0.0
+        image: 192.168.87.134:5000/controller-manage/openkube-controller:v1.0.0
         name: manager
         resources:
           limits:
@@ -260,6 +260,15 @@ spec:
         ports:
         - containerPort: 8443
           name: https
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: openkube-cert
       terminationGracePeriodSeconds: 10
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1

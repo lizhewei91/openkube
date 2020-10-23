@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= 192.168.87.131:5000/controller-manage/openkube-controller:v1.0.0
+IMG ?= 192.168.87.134:5000/controller-manage/openkube-controller:v1.0.0
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
