@@ -303,7 +303,7 @@ webhooks:
 ###### CA证书签发
 这里要分为多个步骤：
 
-####### 1.ca.cert
+**1.ca.cert**
 
 首先获取K8s CA的CA.cert文件：
 
