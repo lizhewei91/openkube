@@ -570,7 +570,7 @@ Metadata:
 
 #### 11.1、打包push docker镜像
 
-修改Makefile中的IMG，`IMG ?= 192.168.87.131:5000/controller-manage/openkube-controller:v1.0.0`
+修改Makefile中的IMG，`IMG ?= 192.168.87.134:5000/controller-manage/openkube-controller:v1.0.0`
 
 ```shell
 # make docker-build docker-push 
@@ -593,4 +593,59 @@ Metadata:
 ```
 
 **修改Deployment，添加Secret挂载**
+```
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command:
+        - /manager
+        image: 192.168.87.134:5000/controller-manage/openkube-controller:v1.0.0
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: openkube-cert
+      terminationGracePeriodSeconds: 10
+```
+另外，这两点不要忘记：
+
+添加`CustomResourceDefinition.spec.preserveUnknownFields: false`
+
+`webhooks.clientConfig.caBundleca`值配置
+
+修改完毕，清理前面的apply的资源和sample，再次执行`kubectl apply -f all_in_one.yaml --validate=false`命令，可以看到，部署成功！
+
 
